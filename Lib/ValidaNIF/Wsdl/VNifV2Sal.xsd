@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:VNifV2Sal="http://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/burt/jdit/ws/VNifV2Sal.xsd"
+    targetNamespace="http://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/burt/jdit/ws/VNifV2Sal.xsd"
+    elementFormDefault="qualified">
+    <xsd:element name="VNifV2Sal" type="VNifV2Sal:VNifV2Sal"/>
+    <xsd:complexType name="VNifV2Sal">
+        <xsd:sequence>
+            <xsd:element name="Contribuyente" minOccurs="1" maxOccurs="20000">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="Nif" type="xsd:string"/>
+                        <xsd:element name="Nombre" type="xsd:string"/>
+                        <xsd:element name="Resultado" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+</xsd:schema>

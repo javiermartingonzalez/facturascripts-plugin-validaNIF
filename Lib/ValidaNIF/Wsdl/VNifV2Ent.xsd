@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:VNifV2Ent="http://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/burt/jdit/ws/VNifV2Ent.xsd"
+    targetNamespace="http://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/burt/jdit/ws/VNifV2Ent.xsd"
+    elementFormDefault="qualified">
+    <xsd:element name="VNifV2Ent" type="VNifV2Ent:VNifV2Ent"/>
+    <xsd:complexType name="VNifV2Ent">
+        <xsd:sequence>
+            <xsd:element name="Contribuyente" minOccurs="1" maxOccurs="20000">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="Nif" type="xsd:string"/>
+                        <xsd:element name="Nombre" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+</xsd:schema>
