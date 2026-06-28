@@ -27,12 +27,12 @@ class EditCliente
     {
         return function ($action) {
             if ($action === 'validanif-ok') {
-                Tools::log()->notice((string)$this->request->queryOrInput('validanif_msg', Tools::trans('validanif-validation-ok')));
+                Tools::log()->notice((string)$this->request->queryOrInput('validanif_msg', Tools::trans('validation-ok')));
                 return true;
             }
 
-            if ($action === 'validanif-error') {
-                Tools::log()->warning((string)$this->request->queryOrInput('validanif_msg', Tools::trans('validanif-validation-error')));
+            if ($action === 'validation-error-title') {
+                Tools::log()->warning((string)$this->request->queryOrInput('validanif_msg', Tools::trans('validation-error')));
                 return true;
             }
 
@@ -49,12 +49,12 @@ class EditCliente
             $code = (string)$this->request->queryOrInput('code');
             $cliente = new Cliente();
             if ($code === '' || false === $cliente->loadFromCode($code)) {
-                Tools::log()->warning(Tools::trans('validanif-load-customer-error'));
+                Tools::log()->warning(Tools::trans('load-customer-error'));
                 return false;
             }
 
             if (empty($cliente->cifnif)) {
-                $redirectWithMessage($cliente->url(), 'validanif-error', Tools::trans('validanif-missing-customer-nif'));
+                $redirectWithMessage($cliente->url(), 'validation-error-title', Tools::trans('missing-customer-nif'));
                 return false;
             }
 
@@ -72,7 +72,7 @@ class EditCliente
 
             if ($response['ok'] ?? false) {
                 $result = $response['result'];
-                $message = Tools::trans('validanif-result-ok-message', [
+                $message = Tools::trans('result-ok-message', [
                     '%result%' => $result['resultado'],
                     '%nif%' => $result['nif'],
                     '%name%' => $result['nombre_aeat'] ?? $result['nombre'],
@@ -82,21 +82,21 @@ class EditCliente
             }
 
             if (isset($response['result'])) {
-                $message = Tools::trans('validanif-result-error-message', [
-                    '%result%' => $response['result']['resultado'] ?? Tools::trans('validanif-error-unknown'),
+                $message = Tools::trans('result-error-message', [
+                    '%result%' => $response['result']['resultado'] ?? Tools::trans('error-unknown'),
                 ]);
-                $redirectWithMessage($cliente->url(), 'validanif-error', $message);
+                $redirectWithMessage($cliente->url(), 'validation-error-title', $message);
                 return false;
             }
 
-            $message = $response['error'] ?? Tools::trans('validanif-error-unknown');
+            $message = $response['error'] ?? Tools::trans('error-unknown');
             if (!empty($response['reference'])) {
-                $message = Tools::trans('validanif-technical-error-with-reference', [
+                $message = Tools::trans('technical-error-with-reference', [
                     '%message%' => $message,
                     '%reference%' => $response['reference'],
                 ]);
             }
-            $redirectWithMessage($cliente->url(), 'validanif-error', $message);
+            $redirectWithMessage($cliente->url(), 'validation-error-title', $message);
             return false;
         };
     }

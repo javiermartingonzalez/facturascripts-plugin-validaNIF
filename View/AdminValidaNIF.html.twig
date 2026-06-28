@@ -1,4 +1,4 @@
-{% extends "Master/MenuTemplate.html.twig" %}
+﻿{% extends "Master/MenuTemplate.html.twig" %}
 
 {% block body %}
 {{ parent() }}
@@ -7,46 +7,46 @@
         <div class="col-12 col-xl-8">
             <div class="card shadow mb-3">
                 <div class="card-header">
-                    <i class="fa-solid fa-certificate me-2"></i> {{ trans('validanif-certificate') }}
+                    <i class="fa-solid fa-certificate me-2"></i> {{ trans('certificate') }}
                 </div>
                 <div class="card-body">
                     <form method="post" enctype="multipart/form-data">
                         {{ formToken() }}
 
                         <div class="mb-3">
-                            <label class="form-label">{{ trans('validanif-certificate-type') }}</label>
+                            <label class="form-label">{{ trans('certificate-type') }}</label>
                             <select name="endpoint_type" class="form-select">
-                                <option value="personal" {% if fsc.endpointType != 'sello' %}selected{% endif %}>{{ trans('validanif-certificate-type-personal') }}</option>
-                                <option value="sello" {% if fsc.endpointType == 'sello' %}selected{% endif %}>{{ trans('validanif-certificate-type-seal') }}</option>
+                                <option value="personal" {% if fsc.endpointType != 'sello' %}selected{% endif %}>{{ trans('certificate-type-personal') }}</option>
+                                <option value="sello" {% if fsc.endpointType == 'sello' %}selected{% endif %}>{{ trans('certificate-type-seal') }}</option>
                             </select>
-                            <div class="form-text">{{ trans('validanif-certificate-type-help') }}</div>
+                            <div class="form-text">{{ trans('certificate-type-help') }}</div>
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">{{ trans('validanif-certificate-file') }}</label>
+                            <label class="form-label">{{ trans('certificate-file') }}</label>
                             <input type="file" name="certificate" class="form-control" accept=".p12,.pfx,application/x-pkcs12" />
                             <div class="form-text">
-                                {{ trans('validanif-certificate-status') }}:
+                                {{ trans('certificate-status') }}:
                                 {% if fsc.hasCertificate and fsc.hasPassphrase %}
-                                    <span class="badge bg-success">{{ trans('validanif-certificate-ready') }}</span>
+                                    <span class="badge bg-success">{{ trans('certificate-ready') }}</span>
                                 {% else %}
-                                    <span class="badge bg-warning text-dark">{{ trans('validanif-certificate-pending') }}</span>
+                                    <span class="badge bg-warning text-dark">{{ trans('certificate-pending') }}</span>
                                 {% endif %}
                             </div>
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">{{ trans('validanif-certificate-password') }}</label>
+                            <label class="form-label">{{ trans('certificate-password') }}</label>
                             <input type="password" name="passphrase" class="form-control" autocomplete="new-password" />
                         </div>
 
                         <button type="submit" name="action" value="upload-certificate" class="btn btn-primary">
-                            <i class="fa-solid fa-upload me-1"></i> {{ trans('validanif-certificate-upload') }}
+                            <i class="fa-solid fa-upload me-1"></i> {{ trans('certificate-upload') }}
                         </button>
 
                         {% if fsc.hasCertificate %}
-                            <button type="submit" name="action" value="delete-certificate" class="btn btn-outline-danger ms-2" onclick="return confirm('{{ trans('validanif-certificate-delete-confirm')|e('js') }}');">
-                                <i class="fa-solid fa-trash me-1"></i> {{ trans('validanif-certificate-delete') }}
+                            <button type="submit" name="action" value="delete-certificate" class="btn btn-outline-danger ms-2" onclick="return confirm('{{ trans('certificate-delete-confirm')|e('js') }}');">
+                                <i class="fa-solid fa-trash me-1"></i> {{ trans('certificate-delete') }}
                             </button>
                         {% endif %}
                     </form>
@@ -55,7 +55,7 @@
 
             <div class="card shadow mb-3">
                 <div class="card-header">
-                    <i class="fa-solid fa-sliders me-2"></i> {{ trans('validanif-app-settings') }}
+                    <i class="fa-solid fa-sliders me-2"></i> {{ trans('app-settings') }}
                 </div>
                 <div class="card-body">
                     <form method="post">
@@ -63,14 +63,14 @@
 
                         <div class="row">
                             <div class="col-12 col-md-5 mb-3">
-                                <label class="form-label">{{ trans('validanif-timeout') }}</label>
+                                <label class="form-label">{{ trans('timeout') }}</label>
                                 <input type="number" name="timeout" min="5" max="300" class="form-control" value="{{ fsc.timeout }}" />
-                                <div class="form-text">{{ trans('validanif-timeout-help') }}</div>
+                                <div class="form-text">{{ trans('timeout-help') }}</div>
                             </div>
                         </div>
 
                         <button type="submit" name="action" value="save-app-settings" class="btn btn-primary">
-                            <i class="fa-solid fa-save me-1"></i> {{ trans('validanif-save-settings') }}
+                            <i class="fa-solid fa-save me-1"></i> {{ trans('save-settings') }}
                         </button>
                     </form>
                 </div>
@@ -78,10 +78,10 @@
 
             <div class="card shadow mb-3">
                 <div class="card-header">
-                    <i class="fa-solid fa-vial me-2"></i> {{ trans('validanif-test') }}
+                    <i class="fa-solid fa-vial me-2"></i> {{ trans('test-validation') }}
                 </div>
                 <div class="card-body">
-                    <form method="post" action="#validanif-test-result">
+                    <form method="post" action="#test-validation-result">
                         {{ formToken() }}
 
                         <div class="row">
@@ -90,21 +90,21 @@
                                 <input type="text" name="test_nif" class="form-control" value="{{ fsc.testNif }}" />
                             </div>
                             <div class="col-12 col-md-8 mb-3">
-                                <label class="form-label">{{ trans('validanif-name') }}</label>
+                                <label class="form-label">{{ trans('name') }}</label>
                                 <input type="text" name="test_nombre" class="form-control" value="{{ fsc.testNombre }}" />
                             </div>
                         </div>
 
                         <button type="submit" name="action" value="test-validanif" class="btn btn-success" {% if not fsc.hasCertificate or not fsc.hasPassphrase or not fsc.requirementsOk %}disabled{% endif %}>
-                            <i class="fa-solid fa-check me-1"></i> {{ trans('validanif-connection-test') }}
+                            <i class="fa-solid fa-check me-1"></i> {{ trans('connection-test') }}
                         </button>
                     </form>
 
                     {% if fsc.lastTest is not empty %}
-                        <hr id="validanif-test-result" />
+                        <hr id="test-validation-result" />
                         {% if fsc.lastTest.ok %}
                             <div class="alert alert-success mb-0">
-                                {{ trans('validanif-result-ok-message', {
+                                {{ trans('result-ok-message', {
                                     '%result%': fsc.lastTest.result.resultado,
                                     '%nif%': fsc.lastTest.result.nif,
                                     '%name%': fsc.lastTest.result.nombre_aeat|default(fsc.lastTest.result.nombre)
@@ -113,12 +113,12 @@
                         {% else %}
                             <div class="alert {% if fsc.lastTest.category == 'aeat-result' %}alert-warning{% else %}alert-danger{% endif %} mb-0">
                                 {% if fsc.lastTest.category == 'aeat-result' %}
-                                    {{ trans('validanif-result-error-message', {
+                                    {{ trans('result-error-message', {
                                         '%result%': fsc.lastTest.error
                                     }) }}
                                 {% else %}
                                     {% if fsc.lastTest.reference is not empty %}
-                                        {{ trans('validanif-technical-error-with-reference', {
+                                        {{ trans('technical-error-with-reference', {
                                             '%message%': fsc.lastTest.error,
                                             '%reference%': fsc.lastTest.reference
                                         }) }}
@@ -136,7 +136,7 @@
         <div class="col-12 col-xl-4">
             <div class="card shadow mb-3">
                 <div class="card-header">
-                    <i class="fa-solid fa-list-check me-2"></i> {{ trans('validanif-server-requirements') }}
+                    <i class="fa-solid fa-list-check me-2"></i> {{ trans('server-requirements') }}
                 </div>
                 <div class="card-body">
                     {% for item in fsc.requirements %}
@@ -146,15 +146,15 @@
                                 <div class="small text-muted">{{ item.message }}</div>
                             </div>
                             {% if item.ok %}
-                                <span class="badge bg-success ms-2">{{ trans('validanif-status-ok') }}</span>
+                                <span class="badge bg-success ms-2">{{ trans('status-ok') }}</span>
                             {% else %}
-                                <span class="badge bg-danger ms-2">{{ trans('validanif-requirement-required') }}</span>
+                                <span class="badge bg-danger ms-2">{{ trans('requirement-required') }}</span>
                             {% endif %}
                         </div>
                     {% endfor %}
                     {% if not fsc.requirementsOk %}
                         <div class="alert alert-warning mb-0 mt-3">
-                            {{ trans('validanif-requirements-warning') }}
+                            {{ trans('requirements-warning') }}
                         </div>
                     {% endif %}
                 </div>
@@ -162,10 +162,10 @@
 
             <div class="card shadow mb-3">
                 <div class="card-header">
-                    <i class="fa-solid fa-circle-info me-2"></i> {{ trans('validanif-info') }}
+                    <i class="fa-solid fa-circle-info me-2"></i> {{ trans('info') }}
                 </div>
                 <div class="card-body">
-                    <p class="mb-0">{{ trans('validanif-info-desc-1') }}</p>
+                    <p class="mb-0">{{ trans('info-desc-1') }}</p>
                 </div>
             </div>
         </div>

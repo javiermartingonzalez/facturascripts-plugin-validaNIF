@@ -76,7 +76,7 @@ class AdminValidaNIF extends Controller
     private function saveAppSettingsAction(): void
     {
         if (false === $this->permissions->allowUpdate) {
-            Tools::log()->warning(Tools::trans('validanif-no-permission'));
+            Tools::log()->warning(Tools::trans('no-permission'));
             return;
         }
 
@@ -85,13 +85,13 @@ class AdminValidaNIF extends Controller
         Tools::settingsSet(ValidatorService::APP_SETTINGS, 'timeout', $this->timeout);
         Tools::settingsSave();
 
-        Tools::log()->notice(Tools::trans('validanif-app-settings-saved'));
+        Tools::log()->notice(Tools::trans('app-settings-saved'));
     }
 
     private function uploadCertificateAction(): void
     {
         if (false === $this->permissions->allowUpdate) {
-            Tools::log()->warning(Tools::trans('validanif-no-permission'));
+            Tools::log()->warning(Tools::trans('no-permission'));
             return;
         }
 
@@ -100,7 +100,7 @@ class AdminValidaNIF extends Controller
         $uploadedFile = $this->request->files->get('certificate');
 
         if ($uploadedFile === null) {
-            Tools::log()->warning(Tools::trans('validanif-certificate-missing'));
+            Tools::log()->warning(Tools::trans('certificate-missing'));
             return;
         }
 
@@ -110,12 +110,12 @@ class AdminValidaNIF extends Controller
 
         $hasUpload = $tmpPath !== '' && is_readable($tmpPath) && filesize($tmpPath) > 0;
         if (false === $hasUpload) {
-            Tools::log()->warning(Tools::trans('validanif-certificate-empty'));
+            Tools::log()->warning(Tools::trans('certificate-empty'));
             return;
         }
 
         if ($passphrase === '') {
-            Tools::log()->warning(Tools::trans('validanif-passphrase-missing'));
+            Tools::log()->warning(Tools::trans('passphrase-missing'));
             return;
         }
 
@@ -128,7 +128,7 @@ class AdminValidaNIF extends Controller
             Tools::settingsSet(ValidatorService::CERT_SETTINGS, 'cert_uploaded', 1);
             Tools::settingsSave();
 
-            Tools::log()->notice(Tools::trans('validanif-certificate-save-ok'));
+            Tools::log()->notice(Tools::trans('certificate-save-ok'));
         } catch (Throwable $exception) {
             $reference = ValidatorService::errorDiagnostic(
                 'config',
@@ -137,18 +137,18 @@ class AdminValidaNIF extends Controller
                 $exception->getMessage(),
                 ['action' => 'upload-certificate']
             );
-            Tools::log()->warning(Tools::trans('validanif-config-log-reference', [
+            Tools::log()->warning(Tools::trans('diagnostic-reference', [
                 '%reference%' => $reference,
             ]));
-            Tools::log()->warning(Tools::trans('validanif-certificate-save-error'));
-            Tools::log()->warning(Tools::trans('validanif-certificate-save-unchanged'));
+            Tools::log()->warning(Tools::trans('certificate-save-error'));
+            Tools::log()->warning(Tools::trans('certificate-save-unchanged'));
         }
     }
 
     private function deleteCertificateAction(): void
     {
         if (false === $this->permissions->allowUpdate) {
-            Tools::log()->warning(Tools::trans('validanif-no-permission'));
+            Tools::log()->warning(Tools::trans('no-permission'));
             return;
         }
 
@@ -156,7 +156,7 @@ class AdminValidaNIF extends Controller
         Tools::settingsSet(ValidatorService::CERT_SETTINGS, 'cert_uploaded', 0);
         Tools::settingsSet(ValidatorService::CERT_SETTINGS, 'passphrase', '');
         Tools::settingsSave();
-        Tools::log()->notice(Tools::trans('validanif-certificate-deleted'));
+        Tools::log()->notice(Tools::trans('certificate-deleted'));
     }
 
     private function testConnectionAction(): void
@@ -165,17 +165,17 @@ class AdminValidaNIF extends Controller
         $this->testNombre = trim((string)$this->request->request->get('test_nombre', ''));
 
         if ($this->testNif === '') {
-            Tools::log()->warning(Tools::trans('validanif-test-missing-data'));
+            Tools::log()->warning(Tools::trans('test-missing-data'));
             return;
         }
 
         $blockingErrors = RuntimeRequirements::blockingErrors($this->requirements);
         if (!empty($blockingErrors)) {
-            $message = Tools::trans('validanif-server-requirements-error') . ' ' . implode(' ', $blockingErrors);
+            $message = Tools::trans('server-requirements-error') . ' ' . implode(' ', $blockingErrors);
             $reference = ValidatorService::errorDiagnostic('test', 'test', 'php-extension', $message);
             $this->lastTest = [
                 'ok' => false,
-                'error' => Tools::trans('validanif-server-requirements-error'),
+                'error' => Tools::trans('server-requirements-error'),
                 'reference' => $reference,
             ];
             return;

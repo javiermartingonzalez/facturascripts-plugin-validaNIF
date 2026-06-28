@@ -59,7 +59,7 @@ final class ValidatorService
                 $errorContext['soap_response'] = self::shorten($client->getLastResponse());
             }
 
-            Tools::log()->error(Tools::trans('validanif-technical-diagnostic', [
+            Tools::log()->error(Tools::trans('technical-diagnostic', [
                 '%reference%' => $reference,
                 '%detail%' => json_encode($errorContext, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
             ]));
@@ -91,7 +91,7 @@ final class ValidatorService
             'context' => $context,
         ];
 
-        Tools::log()->error(Tools::trans('validanif-technical-diagnostic', [
+        Tools::log()->error(Tools::trans('technical-diagnostic', [
             '%reference%' => $reference,
             '%detail%' => json_encode($errorContext, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
         ]));
@@ -124,46 +124,46 @@ final class ValidatorService
         $lower = strtolower($technicalError);
 
         if (str_contains($lower, 'revoc')) {
-            return Tools::trans('validanif-error-certificate-revoked');
+            return Tools::trans('error-certificate-revoked');
         }
 
         if (str_contains($lower, 'caduc') || str_contains($lower, 'expired') || str_contains($lower, 'expirado')) {
-            return Tools::trans('validanif-error-certificate-expired');
+            return Tools::trans('error-certificate-expired');
         }
 
         if (str_contains($lower, '401') || str_contains($lower, '403') || str_contains($lower, 'forbidden') || str_contains($lower, 'unauthorized') || str_contains($lower, 'no autorizado')) {
-            return Tools::trans('validanif-error-certificate-unauthorized');
+            return Tools::trans('error-certificate-unauthorized');
         }
 
         if (str_contains($lower, 'codigo[103]') || str_contains($lower, 'localpart') || str_contains($lower, 'namespace') || str_contains($lower, 'etiqueta')) {
-            return Tools::trans('validanif-error-soap-format');
+            return Tools::trans('error-soap-format');
         }
 
         if ($category === 'php-extension') {
-            return Tools::trans('validanif-error-php-extension');
+            return Tools::trans('error-php-extension');
         }
 
         if ($category === 'certificate-passphrase') {
-            return Tools::trans('validanif-error-certificate-passphrase');
+            return Tools::trans('error-certificate-passphrase');
         }
 
         if ($category === 'certificate') {
-            return Tools::trans('validanif-error-certificate');
+            return Tools::trans('error-certificate');
         }
 
         if ($category === 'aeat-response') {
-            return Tools::trans('validanif-error-aeat-response');
+            return Tools::trans('error-aeat-response');
         }
 
         if ($category === 'tls' || $category === 'endpoint') {
-            return Tools::trans('validanif-error-endpoint');
+            return Tools::trans('error-endpoint');
         }
 
         if ($category === 'soap') {
-            return Tools::trans('validanif-error-soap');
+            return Tools::trans('error-soap');
         }
 
-        return Tools::trans('validanif-error-unknown');
+        return Tools::trans('error-unknown');
     }
 
     private static function categorizeError(string $technicalError): string

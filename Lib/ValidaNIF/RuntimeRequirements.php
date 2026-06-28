@@ -13,28 +13,28 @@ final class RuntimeRequirements
     {
         return [
             [
-                'label' => Tools::trans('validanif-requirement-openssl-label'),
+                'label' => Tools::trans('requirement-openssl-label'),
                 'ok' => extension_loaded('openssl'),
                 'required' => true,
-                'message' => Tools::trans('validanif-requirement-openssl-message'),
+                'message' => Tools::trans('requirement-openssl-message'),
             ],
             [
-                'label' => Tools::trans('validanif-requirement-soap-label'),
+                'label' => Tools::trans('requirement-soap-label'),
                 'ok' => class_exists('SoapClient'),
                 'required' => true,
-                'message' => Tools::trans('validanif-requirement-soap-message'),
+                'message' => Tools::trans('requirement-soap-message'),
             ],
             [
-                'label' => Tools::trans('validanif-requirement-dom-label'),
+                'label' => Tools::trans('requirement-dom-label'),
                 'ok' => class_exists('DOMDocument'),
                 'required' => true,
-                'message' => Tools::trans('validanif-requirement-dom-message'),
+                'message' => Tools::trans('requirement-dom-message'),
             ],
             [
-                'label' => Tools::trans('validanif-requirement-myfiles-label'),
+                'label' => Tools::trans('requirement-myfiles-label'),
                 'ok' => self::canUseStorage(),
                 'required' => true,
-                'message' => Tools::trans('validanif-requirement-myfiles-message'),
+                'message' => Tools::trans('requirement-myfiles-message'),
             ],
         ];
     }
@@ -62,8 +62,8 @@ final class RuntimeRequirements
         $errors = [];
         foreach ($requirements as $requirement) {
             if (($requirement['required'] ?? false) && false === ($requirement['ok'] ?? false)) {
-                $errors[] = Tools::trans('validanif-missing-required', [
-                    '%requirement%' => $requirement['label'] ?? Tools::trans('validanif-server-requirements'),
+                $errors[] = Tools::trans('missing-required', [
+                    '%requirement%' => $requirement['label'] ?? Tools::trans('server-requirements'),
                 ]);
             }
         }

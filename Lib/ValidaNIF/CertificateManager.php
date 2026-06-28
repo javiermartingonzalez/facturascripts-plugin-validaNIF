@@ -2,6 +2,7 @@
 
 namespace FacturaScripts\Plugins\ValidaNIF\Lib\ValidaNIF;
 
+use FacturaScripts\Core\Tools;
 use RuntimeException;
 
 final class CertificateManager
@@ -26,7 +27,6 @@ final class CertificateManager
     {
         return is_readable(self::certificatePath());
     }
-
 
     public static function hasPassphrase(string $storedValue = ''): bool
     {
@@ -54,7 +54,7 @@ final class CertificateManager
         self::ensureStorageDir();
         $file = self::passphrasePath();
         if (file_put_contents($file, $passphrase) === false) {
-            throw new RuntimeException('No se pudo guardar la contraseña del certificado.');
+            throw new RuntimeException(Tools::trans('certificate-error-save-passphrase'));
         }
         @chmod($file, 0600);
     }
@@ -62,16 +62,16 @@ final class CertificateManager
     public static function saveP12(string $tmpPath, string $passphrase): void
     {
         if (!is_readable($tmpPath)) {
-            throw new RuntimeException('No se puede leer el certificado subido.');
+            throw new RuntimeException(Tools::trans('certificate-error-read-upload'));
         }
 
         if ($passphrase === '') {
-            throw new RuntimeException('La contraseña del certificado es obligatoria.');
+            throw new RuntimeException(Tools::trans('certificate-error-passphrase-required'));
         }
 
         $raw = file_get_contents($tmpPath);
         if ($raw === false || $raw === '') {
-            throw new RuntimeException('El certificado subido está vacío.');
+            throw new RuntimeException(Tools::trans('certificate-error-empty-upload'));
         }
 
         self::clearOpenSslErrors();
@@ -88,7 +88,7 @@ final class CertificateManager
             self::writeOriginalCertificate($raw);
             return;
         } catch (RuntimeException) {
-            throw new RuntimeException('No se pudo abrir el certificado. Comprueba que el archivo sea .p12/.pfx válido y que la contraseña sea correcta.');
+            throw new RuntimeException(Tools::trans('certificate-error-open-p12'));
         }
     }
 
@@ -104,7 +104,7 @@ final class CertificateManager
     private static function writePemFromPhpCertificates(array $certs): void
     {
         if (empty($certs['cert']) || empty($certs['pkey'])) {
-            throw new RuntimeException('El .p12/.pfx no contiene certificado y clave privada.');
+            throw new RuntimeException(Tools::trans('certificate-error-missing-private-key'));
         }
 
         $normalize = static function (string $value): string {
@@ -126,7 +126,7 @@ final class CertificateManager
     private static function convertWithOpenSslBinary(string $p12Path, string $passphrase): void
     {
         if (!function_exists('proc_open')) {
-            throw new RuntimeException('No se puede convertir el certificado en este servidor.');
+            throw new RuntimeException(Tools::trans('certificate-error-convert-server'));
         }
 
         self::ensureStorageDir();
@@ -135,7 +135,7 @@ final class CertificateManager
         $passwordInFile = tempnam($tmpDir, 'validanif-passin-');
         $pemTempFile = tempnam($tmpDir, 'validanif-pem-');
         if ($passwordInFile === false || $pemTempFile === false) {
-            throw new RuntimeException('No se pudieron crear ficheros temporales.');
+            throw new RuntimeException(Tools::trans('certificate-error-temp-files'));
         }
 
         try {
@@ -143,7 +143,7 @@ final class CertificateManager
             @chmod($pemTempFile, 0600);
 
             if (file_put_contents($passwordInFile, $passphrase . PHP_EOL) === false) {
-                throw new RuntimeException('No se pudo preparar la conversión del certificado.');
+                throw new RuntimeException(Tools::trans('certificate-error-prepare-conversion'));
             }
 
             $command = [
@@ -171,12 +171,12 @@ final class CertificateManager
             }
 
             if ($result['exitCode'] !== 0) {
-                throw new RuntimeException('OpenSSL no pudo convertir el certificado.');
+                throw new RuntimeException(Tools::trans('certificate-error-openssl-convert'));
             }
 
             $pem = file_get_contents($pemTempFile);
             if ($pem === false || trim($pem) === '') {
-                throw new RuntimeException('OpenSSL no generó ningún certificado PEM.');
+                throw new RuntimeException(Tools::trans('certificate-error-openssl-empty-pem'));
             }
 
             self::validatePemContent($pem);
@@ -204,7 +204,7 @@ final class CertificateManager
 
         $process = @proc_open($command, $descriptors, $pipes);
         if (!is_resource($process)) {
-            throw new RuntimeException('No se pudo ejecutar OpenSSL desde PHP.');
+            throw new RuntimeException(Tools::trans('certificate-error-openssl-exec'));
         }
 
         fclose($pipes[0]);
@@ -226,7 +226,7 @@ final class CertificateManager
         self::ensureStorageDir();
         $file = self::originalCertificatePath();
         if (file_put_contents($file, $raw) === false) {
-            throw new RuntimeException('No se pudo guardar el certificado original.');
+            throw new RuntimeException(Tools::trans('certificate-error-save-original'));
         }
         @chmod($file, 0600);
     }
@@ -236,19 +236,19 @@ final class CertificateManager
         self::ensureStorageDir();
 
         $target = self::certificatePath();
-        $tmp = tempnam(self::storageDir(), 'validanif-cert-');
+        $tmp = tempnam(self::storageDir(), 'validanif-certificate-');
         if ($tmp === false) {
-            throw new RuntimeException('No se pudo crear el fichero temporal del certificado.');
+            throw new RuntimeException(Tools::trans('certificate-error-temp-cert-file'));
         }
 
         try {
             if (file_put_contents($tmp, $pem) === false) {
-                throw new RuntimeException('No se pudo guardar el certificado PEM.');
+                throw new RuntimeException(Tools::trans('certificate-error-save-pem'));
             }
 
             @chmod($tmp, 0600);
             if (!@rename($tmp, $target)) {
-                throw new RuntimeException('No se pudo sustituir el certificado PEM anterior.');
+                throw new RuntimeException(Tools::trans('certificate-error-replace-pem'));
             }
             @chmod($target, 0600);
         } finally {
@@ -261,13 +261,13 @@ final class CertificateManager
     private static function validatePemContent(string $pem): void
     {
         if (strpos($pem, 'BEGIN CERTIFICATE') === false || strpos($pem, 'PRIVATE KEY') === false) {
-            throw new RuntimeException('El certificado no contiene certificado y clave privada.');
+            throw new RuntimeException(Tools::trans('certificate-error-invalid-pem-content'));
         }
 
         $x509 = @openssl_x509_read($pem);
         $pkey = @openssl_pkey_get_private($pem);
         if (!$x509 || !$pkey || !@openssl_x509_check_private_key($x509, $pkey)) {
-            throw new RuntimeException('El certificado y la clave privada no son válidos.');
+            throw new RuntimeException(Tools::trans('certificate-error-invalid-private-key'));
         }
     }
 
@@ -291,7 +291,7 @@ final class CertificateManager
     {
         $dir = self::storageDir();
         if (!is_dir($dir) && !mkdir($dir, 0700, true) && !is_dir($dir)) {
-            throw new RuntimeException('No se pudo crear la carpeta segura para el certificado.');
+            throw new RuntimeException(Tools::trans('certificate-error-storage-dir'));
         }
 
         @chmod($dir, 0700);

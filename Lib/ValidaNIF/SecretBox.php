@@ -5,9 +5,9 @@ namespace FacturaScripts\Plugins\ValidaNIF\Lib\ValidaNIF;
 /**
  * Compatibilidad con versiones anteriores del plugin.
  *
- * Desde la versión 0.7 se guarda la contraseña de forma directa en los ajustes,
+ * Desde la versiÃ³n 0.7 se guarda la contraseÃ±a de forma directa en los ajustes,
  * siguiendo un enfoque similar al de otros plugins de FacturaScripts que guardan
- * la contraseña del certificado en el modelo/configuración correspondiente.
+ * la contraseÃ±a del certificado en el modelo/configuraciÃ³n correspondiente.
  *
  * Este helper se mantiene para poder leer valores antiguos cifrados con el
  * prefijo gcm: sin romper instalaciones de prueba previas.

@@ -4,6 +4,7 @@ namespace FacturaScripts\Plugins\ValidaNIF\Lib\ValidaNIF;
 
 use DOMDocument;
 use DOMXPath;
+use FacturaScripts\Core\Tools;
 use RuntimeException;
 use SoapClient;
 use SoapFault;
@@ -35,7 +36,12 @@ final class AeatNifClient
             ['Nif' => self::cleanNif($nif), 'Nombre' => self::cleanName($nombre)]
         ]);
 
-        return $rows[0] ?? ['nif' => $nif, 'nombre' => $nombre, 'nombre_aeat' => $nombre, 'resultado' => 'Sin respuesta'];
+        return $rows[0] ?? [
+            'nif' => $nif,
+            'nombre' => $nombre,
+            'nombre_aeat' => $nombre,
+            'resultado' => Tools::trans('result-no-response')
+        ];
     }
 
     /**
@@ -47,7 +53,7 @@ final class AeatNifClient
         $this->checkConfiguration();
 
         if (!class_exists(SoapClient::class)) {
-            $this->lastSoapError = 'SOAP: extension PHP no disponible.';
+            $this->lastSoapError = 'SOAP: ' . Tools::trans('soap-extension-missing');
             throw new RuntimeException($this->lastSoapError);
         }
 
@@ -107,7 +113,7 @@ final class AeatNifClient
         $this->lastTransport = 'soap';
         $wsdl = self::wsdlPath();
         if (!is_readable($wsdl)) {
-            throw new RuntimeException('No se encuentra el WSDL local del plugin.');
+            throw new RuntimeException(Tools::trans('wsdl-missing'));
         }
 
         $options = [
@@ -131,7 +137,10 @@ final class AeatNifClient
 
         set_error_handler(static function (int $errno, string $errstr) use ($wsdl): bool {
             if ($errno === E_WARNING || $errno === E_NOTICE) {
-                throw new SoapFault('Client', 'Error al inicializar el cliente SOAP con WSDL "' . $wsdl . '": ' . $errstr);
+                throw new SoapFault('Client', Tools::trans('soap-client-init-error', [
+                    '%error%' => $errstr,
+                    '%wsdl%' => $wsdl,
+                ]));
             }
 
             return false;
@@ -166,10 +175,10 @@ final class AeatNifClient
     private function checkConfiguration(): void
     {
         if (!is_readable($this->certificatePath)) {
-            throw new RuntimeException('No se encuentra el certificado configurado.');
+            throw new RuntimeException(Tools::trans('configured-certificate-missing'));
         }
         if ($this->passphrase === '') {
-            throw new RuntimeException('No se encuentra la contraseña del certificado configurada.');
+            throw new RuntimeException(Tools::trans('configured-passphrase-missing'));
         }
     }
 
@@ -199,7 +208,7 @@ final class AeatNifClient
     {
         $fault = $this->extractFaultString($xml);
         if ($fault !== '') {
-            throw new RuntimeException('AEAT no aceptó la solicitud.');
+            throw new RuntimeException(Tools::trans('aeat-request-rejected'));
         }
 
         $dom = new DOMDocument();
@@ -210,14 +219,13 @@ final class AeatNifClient
         libxml_use_internal_errors($previous);
 
         if (!$loaded) {
-            $message = empty($errors) ? 'respuesta XML no válida.' : trim($errors[0]->message);
-            throw new RuntimeException('AEAT devolvió una respuesta no interpretable.');
+            throw new RuntimeException(Tools::trans('aeat-response-unreadable'));
         }
 
         $xpath = new DOMXPath($dom);
         $nodes = $xpath->query('//*[local-name()="Contribuyente"]');
         if ($nodes === false || $nodes->length === 0) {
-            throw new RuntimeException('AEAT respondió sin datos de contribuyente.');
+            throw new RuntimeException(Tools::trans('aeat-response-without-contributor'));
         }
 
         $rows = [];
