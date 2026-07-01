@@ -2,7 +2,7 @@
 
 ValidaNIF permite comprobar los NIF de clientes y proveedores directamente desde FacturaScripts utilizando el servicio oficial de calidad de datos identificativos de la AEAT (VNifV2).
 
-El plugin añade un botón de validación en las fichas de clientes y proveedores, desde el que se puede verificar si el NIF/CIF y el nombre o razón social coinciden con los datos disponibles en AEAT. Su objetivo es ayudarte a detectar datos fiscales incorrectos antes de emitir documentos, presentar impuestos o mantener una ficha de cliente/proveedor con información poco fiable.
+El plugin añade un botón de validación en las fichas de clientes y proveedores, desde el que se puede verificar si el NIF/CIF y el nombre o razón social coinciden con los datos disponibles en AEAT. Su objetivo es ayudarte a detectar datos fiscales incorrectos antes de emitir documentos, presentar impuestos o mantener una ficha de cliente/proveedor con información poco fiable. Es útil para evitar errores de identificación a la hora de enviar los datos a Verifactu.
 
 El plugin muestra el resultado de forma clara:
 
