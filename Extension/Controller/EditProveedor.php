@@ -9,11 +9,18 @@ use FacturaScripts\Plugins\ValidaNIF\Lib\ValidaNIF\ValidatorService;
 
 class EditProveedor
 {
-    public function createViews(): Closure
+    public function loadData(): Closure
     {
-        return function () {
-            $viewName = $this->getMainViewName();
-            $this->tab($viewName)->addButton([
+        return function ($viewName, $view) {
+            if ($viewName !== $this->getMainViewName()) {
+                return;
+            }
+    
+            if (false === $view->model->exists() || empty($view->model->cifnif)) {
+                return;
+            }
+    
+            $view->addButton([
                 'action' => 'validanif-validate-supplier',
                 'color' => 'info',
                 'icon' => 'fa-solid fa-id-card',
