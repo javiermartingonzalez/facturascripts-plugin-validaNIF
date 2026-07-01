@@ -53,28 +53,30 @@
                 </div>
             </div>
 
-            <div class="card shadow mb-3">
-                <div class="card-header">
-                    <i class="fa-solid fa-sliders me-2"></i> {{ trans('app-settings') }}
-                </div>
-                <div class="card-body">
-                    <form method="post">
-                        {{ formToken() }}
+            {% if fsc.debugMode %}
+                <div class="card shadow mb-3">
+                    <div class="card-header">
+                        <i class="fa-solid fa-sliders me-2"></i> {{ trans('app-settings') }}
+                    </div>
+                    <div class="card-body">
+                        <form method="post">
+                            {{ formToken() }}
 
-                        <div class="row">
-                            <div class="col-12 col-md-5 mb-3">
-                                <label class="form-label">{{ trans('timeout') }}</label>
-                                <input type="number" name="timeout" min="5" max="300" class="form-control" value="{{ fsc.timeout }}" />
-                                <div class="form-text">{{ trans('timeout-help') }}</div>
+                            <div class="row">
+                                <div class="col-12 col-md-5 mb-3">
+                                    <label class="form-label">{{ trans('timeout') }}</label>
+                                    <input type="number" name="timeout" min="5" max="300" class="form-control" value="{{ fsc.timeout }}" />
+                                    <div class="form-text">{{ trans('timeout-help') }}</div>
+                                </div>
                             </div>
-                        </div>
 
-                        <button type="submit" name="action" value="save-app-settings" class="btn btn-primary">
-                            <i class="fa-solid fa-save me-1"></i> {{ trans('save-settings') }}
-                        </button>
-                    </form>
+                            <button type="submit" name="action" value="save-app-settings" class="btn btn-primary">
+                                <i class="fa-solid fa-save me-1"></i> {{ trans('save-settings') }}
+                            </button>
+                        </form>
+                    </div>
                 </div>
-            </div>
+            {% endif %}
 
             <div class="card shadow mb-3">
                 <div class="card-header">

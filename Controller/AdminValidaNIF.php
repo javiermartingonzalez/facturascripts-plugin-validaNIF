@@ -11,6 +11,8 @@ use Throwable;
 
 class AdminValidaNIF extends Controller
 {
+    public bool $debugMode = false;
+
     public bool $hasCertificate = false;
     public bool $hasPassphrase = false;
     public array $requirements = [];
@@ -65,6 +67,7 @@ class AdminValidaNIF extends Controller
 
     private function loadSettings(): void
     {
+        $this->debugMode = (bool)Tools::config('debug', false);
         $this->endpointType = $this->normalizeEndpointType((string)Tools::settings(ValidatorService::CERT_SETTINGS, 'endpoint_type', 'personal'));
         $this->timeout = $this->normalizeTimeout((int)Tools::settings(ValidatorService::APP_SETTINGS, 'timeout', 30));
         $this->hasCertificate = CertificateManager::hasCertificate();
