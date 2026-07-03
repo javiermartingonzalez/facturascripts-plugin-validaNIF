@@ -28,25 +28,22 @@ final class CertificateManager
         return is_readable(self::certificatePath());
     }
 
-    public static function hasPassphrase(string $storedValue = ''): bool
+    public static function hasPassphrase(): bool
     {
-        return self::readPassphrase($storedValue) !== '';
+        return self::readPassphrase() !== '';
     }
 
-    public static function readPassphrase(string $storedValue = ''): string
+    public static function readPassphrase(): string
     {
-        $storedPassphrase = SecretBox::decrypt($storedValue);
-        if ($storedPassphrase !== '') {
-            return $storedPassphrase;
-        }
-
         $file = self::passphrasePath();
-        if (is_readable($file)) {
-            $passphrase = file_get_contents($file);
-            return $passphrase === false ? '' : rtrim($passphrase, "\r\n");
+    
+        if (false === is_readable($file)) {
+            return '';
         }
-
-        return '';
+    
+        $passphrase = file_get_contents($file);
+    
+        return $passphrase === false ? '' : rtrim($passphrase, "\r\n");
     }
 
     public static function savePassphrase(string $passphrase): void

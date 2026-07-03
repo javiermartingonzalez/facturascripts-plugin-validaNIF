@@ -71,7 +71,7 @@ class AdminValidaNIF extends Controller
         $this->endpointType = $this->normalizeEndpointType((string)Tools::settings(ValidatorService::CERT_SETTINGS, 'endpoint_type', 'personal'));
         $this->timeout = $this->normalizeTimeout((int)Tools::settings(ValidatorService::APP_SETTINGS, 'timeout', 30));
         $this->hasCertificate = CertificateManager::hasCertificate();
-        $this->hasPassphrase = CertificateManager::hasPassphrase((string)Tools::settings(ValidatorService::CERT_SETTINGS, 'passphrase', ''));
+        $this->hasPassphrase = CertificateManager::hasPassphrase();
         $this->requirements = RuntimeRequirements::all();
         $this->requirementsOk = RuntimeRequirements::isOk($this->requirements);
     }
@@ -127,7 +127,6 @@ class AdminValidaNIF extends Controller
             CertificateManager::savePassphrase($passphrase);
 
             Tools::settingsSet(ValidatorService::CERT_SETTINGS, 'endpoint_type', $endpointType);
-            Tools::settingsSet(ValidatorService::CERT_SETTINGS, 'passphrase', $passphrase);
             Tools::settingsSet(ValidatorService::CERT_SETTINGS, 'cert_uploaded', 1);
             Tools::settingsSave();
 
@@ -157,7 +156,6 @@ class AdminValidaNIF extends Controller
 
         CertificateManager::deleteCertificate();
         Tools::settingsSet(ValidatorService::CERT_SETTINGS, 'cert_uploaded', 0);
-        Tools::settingsSet(ValidatorService::CERT_SETTINGS, 'passphrase', '');
         Tools::settingsSave();
         Tools::log()->notice(Tools::trans('certificate-deleted'));
     }
