@@ -11,13 +11,12 @@ use Throwable;
 
 class AdminValidaNIF extends Controller
 {
-    public bool $debugMode = false;
-
     public bool $hasCertificate = false;
     public bool $hasPassphrase = false;
+    public array $certificateInfo = [];
     public array $requirements = [];
     public bool $requirementsOk = true;
-    public string $endpointType = 'personal';
+    public bool $debugMode = false;
     public int $timeout = 30;
     public string $testNif = '';
     public string $testNombre = '';
@@ -57,6 +56,10 @@ class AdminValidaNIF extends Controller
                 $this->deleteCertificateAction();
                 break;
 
+            case 'refresh-certificate-info':
+                $this->refreshCertificateInfoAction();
+                break;
+
             case 'test-validanif':
                 $this->testConnectionAction();
                 break;
@@ -68,10 +71,10 @@ class AdminValidaNIF extends Controller
     private function loadSettings(): void
     {
         $this->debugMode = (bool)Tools::config('debug', false);
-        $this->endpointType = $this->normalizeEndpointType((string)Tools::settings(ValidatorService::CERT_SETTINGS, 'endpoint_type', 'personal'));
         $this->timeout = $this->normalizeTimeout((int)Tools::settings(ValidatorService::APP_SETTINGS, 'timeout', 30));
         $this->hasCertificate = CertificateManager::hasCertificate();
         $this->hasPassphrase = CertificateManager::hasPassphrase();
+        $this->certificateInfo = CertificateManager::certificateInfo();
         $this->requirements = RuntimeRequirements::all();
         $this->requirementsOk = RuntimeRequirements::isOk($this->requirements);
     }
@@ -79,6 +82,11 @@ class AdminValidaNIF extends Controller
     private function saveAppSettingsAction(): void
     {
         if (false === $this->permissions->allowUpdate) {
+            Tools::log()->warning(Tools::trans('no-permission'));
+            return;
+        }
+
+        if (false === (bool)Tools::config('debug', false)) {
             Tools::log()->warning(Tools::trans('no-permission'));
             return;
         }
@@ -98,12 +106,20 @@ class AdminValidaNIF extends Controller
             return;
         }
 
-        $endpointType = $this->normalizeEndpointType((string)$this->request->request->get('endpoint_type', 'personal'));
         $passphrase = (string)$this->request->request->get('passphrase', '');
         $uploadedFile = $this->request->files->get('certificate');
 
         if ($uploadedFile === null) {
             Tools::log()->warning(Tools::trans('certificate-missing'));
+            return;
+        }
+
+        $originalName = method_exists($uploadedFile, 'getClientOriginalName')
+            ? (string)$uploadedFile->getClientOriginalName()
+            : (string)($uploadedFile['name'] ?? '');
+        $extension = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
+        if ($extension !== '' && false === in_array($extension, ['p12', 'pfx'], true)) {
+            Tools::log()->warning(Tools::trans('certificate-error-not-binary-p12'));
             return;
         }
 
@@ -126,23 +142,21 @@ class AdminValidaNIF extends Controller
             CertificateManager::saveP12($tmpPath, $passphrase);
             CertificateManager::savePassphrase($passphrase);
 
-            Tools::settingsSet(ValidatorService::CERT_SETTINGS, 'endpoint_type', $endpointType);
             Tools::settingsSet(ValidatorService::CERT_SETTINGS, 'cert_uploaded', 1);
             Tools::settingsSave();
 
             Tools::log()->notice(Tools::trans('certificate-save-ok'));
+            $certificateInfo = CertificateManager::certificateInfo();
+            if (!empty($certificateInfo['warnings'])) {
+                Tools::log()->warning(Tools::trans('certificate-upload-warning'));
+                foreach ((array)$certificateInfo['warnings'] as $warning) {
+                    Tools::log()->warning((string)$warning);
+                }
+            }
         } catch (Throwable $exception) {
-            $reference = ValidatorService::errorDiagnostic(
-                'config',
-                'certificate',
-                'certificate',
-                $exception->getMessage(),
-                ['action' => 'upload-certificate']
-            );
-            Tools::log()->warning(Tools::trans('diagnostic-reference', [
-                '%reference%' => $reference,
+            Tools::log()->warning(Tools::trans('certificate-save-error-detail', [
+                '%message%' => $exception->getMessage(),
             ]));
-            Tools::log()->warning(Tools::trans('certificate-save-error'));
             Tools::log()->warning(Tools::trans('certificate-save-unchanged'));
         }
     }
@@ -158,6 +172,36 @@ class AdminValidaNIF extends Controller
         Tools::settingsSet(ValidatorService::CERT_SETTINGS, 'cert_uploaded', 0);
         Tools::settingsSave();
         Tools::log()->notice(Tools::trans('certificate-deleted'));
+    }
+
+    private function refreshCertificateInfoAction(): void
+    {
+        if (false === $this->permissions->allowUpdate) {
+            Tools::log()->warning(Tools::trans('no-permission'));
+            return;
+        }
+
+        try {
+            $info = CertificateManager::refreshCertificateInfo();
+            if (!empty($info['errors'])) {
+                Tools::log()->warning(Tools::trans('certificate-refresh-warning'));
+                foreach ((array)$info['errors'] as $error) {
+                    Tools::log()->warning((string)$error);
+                }
+                return;
+            }
+
+            Tools::log()->notice(Tools::trans('certificate-refresh-ok'));
+            if (!empty($info['warnings'])) {
+                foreach ((array)$info['warnings'] as $warning) {
+                    Tools::log()->warning((string)$warning);
+                }
+            }
+        } catch (Throwable $exception) {
+            Tools::log()->warning(Tools::trans('certificate-refresh-error', [
+                '%message%' => $exception->getMessage(),
+            ]));
+        }
     }
 
     private function testConnectionAction(): void
@@ -196,10 +240,6 @@ class AdminValidaNIF extends Controller
         }
     }
 
-    private function normalizeEndpointType(string $endpointType): string
-    {
-        return $endpointType === 'sello' ? 'sello' : 'personal';
-    }
 
     private function normalizeTimeout(int $timeout): int
     {

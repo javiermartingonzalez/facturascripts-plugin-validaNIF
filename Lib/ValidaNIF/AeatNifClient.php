@@ -122,7 +122,11 @@ final class AeatNifClient
             'trace' => true,
             'exceptions' => true,
             'cache_wsdl' => WSDL_CACHE_NONE,
+            'connection_timeout' => $this->timeout,
             'stream_context' => stream_context_create([
+                'http' => [
+                    'timeout' => $this->timeout,
+                ],
                 'ssl' => [
                     'verify_peer' => true,
                     'verify_peer_name' => true,
@@ -208,7 +212,7 @@ final class AeatNifClient
     {
         $fault = $this->extractFaultString($xml);
         if ($fault !== '') {
-            throw new RuntimeException(Tools::trans('aeat-request-rejected'));
+            throw new RuntimeException(Tools::trans('aeat-request-rejected') . ' ' . $fault);
         }
 
         $dom = new DOMDocument();

@@ -59,17 +59,23 @@ final class ValidatorService
                 $errorContext['soap_response'] = self::shorten($client->getLastResponse());
             }
 
-            Tools::log()->error(Tools::trans('technical-diagnostic', [
-                '%reference%' => $reference,
-                '%detail%' => json_encode($errorContext, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
-            ]));
+            $isCertificateIssue = in_array($category, ['certificate', 'certificate-passphrase'], true);
+            $debugDetail = json_encode($errorContext, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+
+            if (false === $isCertificateIssue) {
+                Tools::log()->error(Tools::trans('technical-diagnostic', [
+                    '%reference%' => $reference,
+                    '%detail%' => json_encode($errorContext, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
+                ]));
+            }
 
             return [
                 'ok' => false,
                 'error' => self::friendlyError($category, $technicalError),
                 'technical_error' => $technicalError,
                 'category' => $category,
-                'reference' => $reference,
+                'reference' => $isCertificateIssue ? '' : $reference,
+                'debug_detail' => $isCertificateIssue ? '' : ($debugDetail === false ? $technicalError : $debugDetail),
             ];
         }
     }
@@ -101,8 +107,7 @@ final class ValidatorService
 
     private function client(): AeatNifClient
     {
-        $storedPassphrase = (string)Tools::settings(self::CERT_SETTINGS, 'passphrase', '');
-        $passphrase = CertificateManager::readPassphrase($storedPassphrase);
+        $passphrase = CertificateManager::readPassphrase();
         $endpointType = $this->endpointType();
         $timeout = (int)Tools::settings(self::APP_SETTINGS, 'timeout', 30);
 
@@ -116,7 +121,7 @@ final class ValidatorService
 
     private function endpointType(): string
     {
-        return ((string)Tools::settings(self::CERT_SETTINGS, 'endpoint_type', 'personal')) === 'sello' ? 'sello' : 'personal';
+        return CertificateManager::endpointType();
     }
 
     private static function friendlyError(string $category, string $technicalError = ''): string
@@ -175,6 +180,9 @@ final class ValidatorService
         }
         if (str_contains($lower, 'contrase') || str_contains($lower, 'passphrase') || str_contains($lower, 'password')) {
             return 'certificate-passphrase';
+        }
+        if (str_contains($lower, 'revoc') || str_contains($lower, 'caduc') || str_contains($lower, 'expired') || str_contains($lower, 'not valid yet')) {
+            return 'certificate';
         }
         if (str_contains($lower, 'certificado') || str_contains($lower, 'certificate') || str_contains($lower, 'private key') || str_contains($lower, 'pem')) {
             return 'certificate';

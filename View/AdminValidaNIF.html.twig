@@ -14,25 +14,96 @@
                         {{ formToken() }}
 
                         <div class="mb-3">
-                            <label class="form-label">{{ trans('certificate-type') }}</label>
-                            <select name="endpoint_type" class="form-select">
-                                <option value="personal" {% if fsc.endpointType != 'sello' %}selected{% endif %}>{{ trans('certificate-type-personal') }}</option>
-                                <option value="sello" {% if fsc.endpointType == 'sello' %}selected{% endif %}>{{ trans('certificate-type-seal') }}</option>
-                            </select>
-                            <div class="form-text">{{ trans('certificate-type-help') }}</div>
-                        </div>
-
-                        <div class="mb-3">
                             <label class="form-label">{{ trans('certificate-file') }}</label>
                             <input type="file" name="certificate" class="form-control" accept=".p12,.pfx,application/x-pkcs12" />
                             <div class="form-text">
                                 {{ trans('certificate-status') }}:
-                                {% if fsc.hasCertificate and fsc.hasPassphrase %}
+                                {% if fsc.hasCertificate and fsc.hasPassphrase and fsc.certificateInfo.ok|default(true) %}
                                     <span class="badge bg-success">{{ trans('certificate-ready') }}</span>
+                                {% elseif fsc.hasCertificate and fsc.hasPassphrase %}
+                                    <span class="badge bg-warning text-dark">{{ trans('status-warning') }}</span>
                                 {% else %}
                                     <span class="badge bg-warning text-dark">{{ trans('certificate-pending') }}</span>
                                 {% endif %}
                             </div>
+
+                            {% if fsc.hasCertificate and fsc.certificateInfo is not empty %}
+                                <div class="border rounded p-2 mt-3 small">
+                                    <div class="fw-bold mb-2">{{ trans('certificate-info') }}</div>
+
+                                    {% if fsc.certificateInfo.is_expired|default(false) %}
+                                        <div class="alert alert-warning py-2 px-3 mb-2">
+                                            <i class="fa-solid fa-triangle-exclamation me-1"></i>
+                                            {{ trans('certificate-expired-alert', {'%date%': fsc.certificateInfo.valid_to_human|default('')}) }}
+                                        </div>
+                                    {% elseif fsc.certificateInfo.is_not_valid_yet|default(false) %}
+                                        <div class="alert alert-warning py-2 px-3 mb-2">
+                                            <i class="fa-solid fa-triangle-exclamation me-1"></i>
+                                            {{ trans('certificate-not-valid-yet-alert', {'%date%': fsc.certificateInfo.valid_from_human|default('')}) }}
+                                        </div>
+                                    {% elseif fsc.certificateInfo.is_expiring_soon|default(false) %}
+                                        <div class="alert alert-warning py-2 px-3 mb-2">
+                                            <i class="fa-solid fa-triangle-exclamation me-1"></i>
+                                            {{ trans('certificate-expiring-soon-alert', {
+                                                '%days%': fsc.certificateInfo.days_to_expire|default(0),
+                                                '%date%': fsc.certificateInfo.valid_to_human|default('')
+                                            }) }}
+                                        </div>
+                                    {% endif %}
+
+                                    {% if fsc.certificateInfo.valid_to_human|default('') != '' %}
+                                        <div>{{ trans('certificate-valid-until', {'%date%': fsc.certificateInfo.valid_to_human}) }}</div>
+                                    {% endif %}
+                                    <div>{{ trans('certificate-type') }}:
+                                        {% if fsc.certificateInfo.is_seal|default(false) %}
+                                            {{ trans('certificate-type-seal') }}
+                                        {% else %}
+                                            {{ trans('certificate-type-personal') }}
+                                        {% endif %}
+                                    </div>
+                                    {% if fsc.certificateInfo.subject_cn|default('') != '' %}
+                                        <div>{{ trans('certificate-subject') }}: {{ fsc.certificateInfo.subject_cn }}</div>
+                                    {% endif %}
+                                    {% if fsc.certificateInfo.issuer_cn|default('') != '' %}
+                                        <div>{{ trans('certificate-issuer') }}: {{ fsc.certificateInfo.issuer_cn }}</div>
+                                    {% endif %}
+                                    {% if fsc.certificateInfo.serial_number|default('') != '' %}
+                                        <div>{{ trans('certificate-serial') }}: {{ fsc.certificateInfo.serial_number }}</div>
+                                    {% endif %}
+
+                                    <div class="mt-3 fw-bold">{{ trans('certificate-checks') }}</div>
+                                    <div class="d-flex flex-wrap gap-1 mt-1">
+                                        <span class="badge {% if fsc.certificateInfo.is_qualified|default(false) %}bg-success{% else %}bg-warning text-dark{% endif %}">{{ trans('certificate-check-qualified') }}</span>
+                                        <span class="badge {% if fsc.certificateInfo.has_signing_capability|default(false) %}bg-success{% else %}bg-warning text-dark{% endif %}">{{ trans('certificate-check-signing') }}</span>
+                                        <span class="badge {% if fsc.certificateInfo.has_client_auth_capability|default(false) %}bg-success{% else %}bg-warning text-dark{% endif %}">{{ trans('certificate-check-client-auth') }}</span>
+                                        {% if fsc.certificateInfo.is_seal|default(false) %}
+                                            <span class="badge bg-info text-dark">{{ trans('certificate-check-seal') }}</span>
+                                        {% endif %}
+                                        {% if fsc.certificateInfo.is_representative|default(false) %}
+                                            <span class="badge bg-info text-dark">{{ trans('certificate-check-representative') }}</span>
+                                        {% endif %}
+                                    </div>
+
+                                    {% if fsc.certificateInfo.revocation_status|default('') != '' %}
+                                        <div class="d-flex flex-wrap gap-1 align-items-center mt-2">
+                                            <span class="text-muted me-1">{{ trans('certificate-check-revocation') }}:</span>
+                                            <span class="badge {% if fsc.certificateInfo.revocation_status|default('') == 'ok' %}bg-success{% elseif fsc.certificateInfo.revocation_status|default('') == 'revoked' %}bg-warning text-dark{% else %}bg-warning text-dark{% endif %}">
+                                                {{ fsc.certificateInfo.revocation_message|default(trans('certificate-revocation-unknown')) }}
+                                            </span>
+                                            {% if fsc.certificateInfo.checked_at_human|default('') != '' %}
+                                                <span class="text-muted ms-1">{{ trans('certificate-checked-at', {'%date%': fsc.certificateInfo.checked_at_human}) }}</span>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+
+                                    {% for error in fsc.certificateInfo.errors|default([]) %}
+                                        <div class="alert alert-warning py-1 px-2 mt-2 mb-0">{{ error }}</div>
+                                    {% endfor %}
+                                    {% for warning in fsc.certificateInfo.warnings|default([]) %}
+                                        <div class="alert alert-warning py-1 px-2 mt-2 mb-0">{{ warning }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
                         </div>
 
                         <div class="mb-3">
@@ -45,6 +116,9 @@
                         </button>
 
                         {% if fsc.hasCertificate %}
+                            <button type="submit" name="action" value="refresh-certificate-info" class="btn btn-outline-secondary ms-2" formnovalidate>
+                                <i class="fa-solid fa-arrows-rotate me-1"></i> {{ trans('certificate-refresh-info') }}
+                            </button>
                             <button type="submit" name="action" value="delete-certificate" class="btn btn-outline-danger ms-2" onclick="return confirm('{{ trans('certificate-delete-confirm')|e('js') }}');">
                                 <i class="fa-solid fa-trash me-1"></i> {{ trans('certificate-delete') }}
                             </button>
@@ -54,7 +128,7 @@
             </div>
 
             {% if fsc.debugMode %}
-                <div class="card shadow mb-3">
+            <div class="card shadow mb-3">
                     <div class="card-header">
                         <i class="fa-solid fa-sliders me-2"></i> {{ trans('app-settings') }}
                     </div>
@@ -113,7 +187,8 @@
                                 }) }}
                             </div>
                         {% else %}
-                            <div class="alert {% if fsc.lastTest.category == 'aeat-result' %}alert-warning{% else %}alert-danger{% endif %} mb-0">
+                            {% set warningCategories = ['aeat-result', 'certificate', 'certificate-passphrase'] %}
+                            <div class="alert {% if fsc.lastTest.category in warningCategories %}alert-warning{% else %}alert-danger{% endif %} mb-0">
                                 {% if fsc.lastTest.category == 'aeat-result' %}
                                     {{ trans('result-error-message', {
                                         '%result%': fsc.lastTest.error
@@ -126,6 +201,13 @@
                                         }) }}
                                     {% else %}
                                         {{ fsc.lastTest.error }}
+                                    {% endif %}
+
+                                    {% if fsc.lastTest.debug_detail|default('') != '' and fsc.lastTest.category not in warningCategories %}
+                                        <details class="mt-2">
+                                            <summary>{{ trans('show-technical-details') }}</summary>
+                                            <pre class="small mt-2 mb-0 p-2 bg-light border rounded" style="white-space: pre-wrap; max-height: 420px; overflow: auto;">{{ fsc.lastTest.debug_detail }}</pre>
+                                        </details>
                                     {% endif %}
                                 {% endif %}
                             </div>
